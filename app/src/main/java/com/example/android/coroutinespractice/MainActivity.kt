@@ -19,12 +19,12 @@ class MainActivity : AppCompatActivity() {
 
         binding.ButtonUpdateNumber.setOnClickListener { view: View -> changeNumber() }
 
-        binding.ButtonEnterLetter.setOnClickListener { view:View -> addText() }
+        binding.ButtonEnterLetter.setOnClickListener { view: View -> addText() }
     }
 
     private val BACKGROUND = Executors.newFixedThreadPool(2)
 
-    @Volatile
+//    @Volatile
     var number: Int = 0
 
     var newText: String = ""
@@ -32,14 +32,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun changeNumber() {
         BACKGROUND.submit {
+//            val localNumber = number++
+//            number++
             Thread.sleep(returnRandomNumber())
+//            Thread.sleep(1_000)
             number++
             runOnUiThread { updateText(number) }
         }
     }
 
-    private fun returnRandomNumber():Long{
-        return (1_000..10_000).random().toLong()
+    private fun returnRandomNumber(): Long {
+        synchronized(this) {
+            return when ((1..5).random()) {
+                1 -> 1000
+                2 -> 3000
+                3 -> 4000
+                4 -> 5000
+                else -> 6000
+            }
+
+        }
     }
 
     private fun updateText(number: Int) {
@@ -49,8 +61,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun addText(){
-        binding.UpdatableText.text = binding.UpdatableText.text.toString() + binding.inputLine.text.toString()
+    private fun addText() {
+        binding.UpdatableText.text =
+            binding.UpdatableText.text.toString() + binding.inputLine.text.toString()
     }
 
     private fun updateScreenText() {
