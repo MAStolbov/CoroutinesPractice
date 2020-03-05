@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        binding.ButtonUpdateNumber.setOnClickListener { view: View -> changeNumber() }
+        binding.ButtonUpdateNumber.setOnClickListener { view: View -> testCoroutines() }
 
         binding.ButtonEnterLetter.setOnClickListener { view: View -> addText() }
     }
@@ -69,13 +69,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //функия для проверки мешают ли корутины друг другу в потоке
+    private fun testCoroutines(){
+        GlobalScope.launch(Dispatchers.IO) {
+            forTestOne()
+            forTestTwo()
+        }
+    }
 
-//    suspend fun loop(){
-//        for (i in 1..1_000_000_000){
-//            var t =0
-//            t++
-//        }
-//    }
+    private  fun forTestOne(){
+            for (i in 1..1_000_000_000){
+                var t =0
+                t++
+            }
+            GlobalScope.launch (Dispatchers.Main){
+                newText = binding.UpdatableText.text.toString() + " First fun finished "
+                binding.UpdatableText.text = newText
+            }
+    }
+
+    private  fun forTestTwo(){
+            for (i in 1..500_000_000){
+                var t =0
+                t++
+            }
+            GlobalScope.launch (Dispatchers.Main){
+                newText = binding.UpdatableText.text.toString() + " Second fun finished "
+                binding.UpdatableText.text = newText
+            }
+    }
 
     //
      private suspend fun updateText(number: Int) {
@@ -96,15 +118,4 @@ class MainActivity : AppCompatActivity() {
             binding.UpdatableText.text.toString() + binding.inputLine.text.toString()
     }
 
-//    private fun updateScreenText() {
-//        doAsync {
-//            BACKGROUND.submit {
-//                Thread.sleep(1_000)
-//                number++
-//                uiThread { updateText(number) }
-//            }
-//        }
-//
-//
-//    }
 }
