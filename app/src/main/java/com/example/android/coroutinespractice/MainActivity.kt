@@ -8,6 +8,8 @@ import com.example.android.coroutinespractice.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
@@ -25,6 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private val BACKGROUND = Executors.newFixedThreadPool(2)
+    private val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
 
     //    @Volatile
     var number: Int = 0
@@ -45,11 +48,9 @@ class MainActivity : AppCompatActivity() {
 
     ///
     private fun changeNumber() {
-//        CoroutineScope(Dispatchers.Main).launch {
         uiScope.launch {
             val localNumber = number++
             delay(returnRandomNumber())
-//            delay(1_000)
             updateText(localNumber)
 
         }
@@ -69,34 +70,55 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //функия для проверки мешают ли корутины друг другу в потоке
-    private fun testCoroutines(){
+    //проверка функции repeat которая запускает заданное кол-во корутинов
+    private fun launchSomeCoroutines(){
         GlobalScope.launch(Dispatchers.IO) {
-            forTestOne()
-            forTestTwo()
+            repeat(4){
+                val start = sdf.format(Date())
+                val finish = sdf.format(Date())
+                launch(Dispatchers.Main){
+                    newText = binding.UpdatableText.text.toString() + " $start - $finish "
+                    binding.UpdatableText.text = newText
+                }
+            }
         }
     }
 
-    private  fun forTestOne(){
-            for (i in 1..1_000_000_000){
-                var t =0
-                t++
-            }
-            GlobalScope.launch (Dispatchers.Main){
-                newText = binding.UpdatableText.text.toString() + " First fun finished "
-                binding.UpdatableText.text = newText
-            }
+
+    //функия для проверки мешают ли корутины друг другу в потоке
+    private fun testCoroutines() {
+        // функции имитирующие работу в потоке
+        forTestOne()
+        forTestTwo()
     }
 
-    private  fun forTestTwo(){
-            for (i in 1..500_000_000){
-                var t =0
+    private fun forTestOne() {
+        GlobalScope.launch(Dispatchers.IO) {
+            val start = sdf.format(Date())
+            for (i in 1..3_000_000_000) {
+                var t = 0
                 t++
             }
-            GlobalScope.launch (Dispatchers.Main){
-                newText = binding.UpdatableText.text.toString() + " Second fun finished "
-                binding.UpdatableText.text = newText
+            val finish = sdf.format(Date())
+            showResult(start,finish,"First fun")
+        }
+    }
+
+    private fun forTestTwo() {
+        GlobalScope.launch(Dispatchers.IO) {
+            val start = sdf.format(Date())
+            for (i in 1..900_000_000) {
+                var t = 0
+                t++
             }
+            val finish = sdf.format(Date())
+            showResult(start,finish,"Second fun")
+        }
+    }
+    // отображает результат на экране
+    private fun showResult(starTime: String, finishTime: String, funNumber: String) {
+        newText = binding.UpdatableText.text.toString() + " $funNumber $starTime - $finishTime "
+        binding.UpdatableText.text = newText
     }
 
     //
